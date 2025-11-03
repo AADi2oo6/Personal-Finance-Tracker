@@ -33,8 +33,8 @@ public class Category {
     @Override
     public String toString() {
         return "[Category] ID: " + categoryId +
-               ", Name: " + name +
-               ", Created: " + createdAt;
+               ", Name: " + name ;
+//               ", Created: " + createdAt;
     }
 
 }

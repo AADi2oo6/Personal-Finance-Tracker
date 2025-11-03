@@ -33,15 +33,24 @@ public class Account {
     public double getBalance() { return balance; }
     public void setBalance(double balance) { this.balance = balance; }
 
+//    public LocalDateTime getCreatedAt() { return createdAt; }
+//    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+//
+//    @Override
+//    public String toString() {
+//        return "[Account] ID: " + accountId +
+//               ", Name: " + name +
+//               ", Balance: ₹" + String.format("%.2f", balance) +
+//               ", Created: " + createdAt;
+//    }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     @Override
     public String toString() {
-        return "[Account] ID: " + accountId +
-               ", Name: " + name +
-               ", Balance: ₹" + String.format("%.2f", balance) +
-               ", Created: " + createdAt;
+        // This change will make ComboBoxes (dropdowns) in the GUI
+        // show just the account name, which is much cleaner.
+        return name;
     }
 
 }
