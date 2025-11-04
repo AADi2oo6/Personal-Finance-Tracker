@@ -122,7 +122,8 @@ public class DashboardPanel extends JPanel {
         });
 
         monthlyReportButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Monthly Report panel not yet implemented.");
+            MonthlyReportPanel monthlyReport = new MonthlyReportPanel(financeService);
+            showPanel(monthlyReport);
         });
 
         topSpendingButton.addActionListener(e -> {
