@@ -32,8 +32,8 @@ public class Category {
 
     @Override
     public String toString() {
-        return "[Category] ID: " + categoryId +
-               ", Name: " + name ;
+        return "ID: " + categoryId +
+               "-> Name: " + name ;
 //               ", Created: " + createdAt;
     }
 

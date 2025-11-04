@@ -103,12 +103,9 @@ public class DashboardPanel extends JPanel {
 
         // FIXED: Added listener
         manageCategoriesButton.addActionListener(e -> {
-            // You will need to create this ManageCategoriesPanel.java file
-            // ManageCategoriesPanel catPanel = new ManageCategoriesPanel(financeService);
-            // showPanel(catPanel);
-
-            // For now, a placeholder:
-            JOptionPane.showMessageDialog(this, "Manage Categories panel not yet implemented.");
+            // This creates and shows your new panel
+            ManageCategoriesPanel catPanel = new ManageCategoriesPanel(financeService);
+            showPanel(catPanel);
         });
 
         // --- Add listeners for all other new buttons ---

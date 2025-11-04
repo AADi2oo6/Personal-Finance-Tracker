@@ -50,7 +50,8 @@ public class Account {
     public String toString() {
         // This change will make ComboBoxes (dropdowns) in the GUI
         // show just the account name, which is much cleaner.
-        return name;
+        return "ID: " + accountId +
+               "-> Name: " + name ;
     }
 
 }
