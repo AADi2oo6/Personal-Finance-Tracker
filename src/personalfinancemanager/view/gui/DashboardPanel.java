@@ -127,11 +127,13 @@ public class DashboardPanel extends JPanel {
         });
 
         topSpendingButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Top Spending panel not yet implemented.");
+            TopSpendingPanel topSpending = new TopSpendingPanel(financeService);
+            showPanel(topSpending);
         });
 
         netSavingsButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Net Savings panel not yet implemented.");
+            NetSavingsPanel netSaving = new NetSavingsPanel(financeService);
+            showPanel(netSaving);
         });
 
         exportAllButton.addActionListener(e -> {

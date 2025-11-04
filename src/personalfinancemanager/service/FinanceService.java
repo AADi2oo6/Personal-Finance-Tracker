@@ -5,13 +5,10 @@ import personalfinancemanager.dao.TransactionDAO;
 import personalfinancemanager.dao.CategoryDAO;
 import personalfinancemanager.dao.AccountDAO;
 import personalfinancemanager.dao.BudgetDAO;
-import personalfinancemanager.models.Transaction;
-import personalfinancemanager.models.Expense;
-import personalfinancemanager.models.Category;
+import personalfinancemanager.models.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import personalfinancemanager.models.Account;
 
 public class FinanceService {
     private final TransactionDAO transactionDAO;
@@ -79,6 +76,24 @@ public class FinanceService {
         double expense = getTotal("EXPENSE", userId);
         return income - expense;
     }
+    public double getNetSavingsByMonth(int userId, int year, int month) {
+        // This method (findByMonth) is already used by your getMonthlyCategoryBreakdown,
+        // so we know it exists and works.
+        List<Transaction> txList = transactionDAO.findByMonth(userId, year, month);
+
+        double income = 0.0;
+        double expense = 0.0;
+
+        // Go through the transactions and sum up income vs. expense
+        for (Transaction tx : txList) {
+            if (tx instanceof Income) {
+                income += tx.getAmount();
+            } else if (tx instanceof Expense) {
+                expense += tx.getAmount();
+            }
+        }
+        return income - expense;
+    }
 
     // Monthly expense summary grouped by category
     public Map<String, Double> getMonthlyCategoryBreakdown(int userId, int year, int month) {
@@ -121,5 +136,6 @@ public class FinanceService {
         Double budget = getMonthlyBudget(userId, year, month);
         return budget != null && spent > budget;
     }
+
 
 }
