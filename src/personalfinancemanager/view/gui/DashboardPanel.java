@@ -111,7 +111,9 @@ public class DashboardPanel extends JPanel {
         // --- Add listeners for all other new buttons ---
 
         setBudgetButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Set Budget panel not yet implemented.");
+            // This creates and shows your new panel
+            SetBudgetPanel budgetPanel = new SetBudgetPanel(financeService);
+            showPanel(budgetPanel);
         });
 
         checkBudgetButton.addActionListener(e -> {
