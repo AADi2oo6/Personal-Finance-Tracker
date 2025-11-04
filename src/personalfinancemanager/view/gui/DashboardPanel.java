@@ -96,12 +96,9 @@ public class DashboardPanel extends JPanel {
 
         // FIXED: Added listener
         manageAccountsButton.addActionListener(e -> {
-            // You will need to create this ManageAccountsPanel.java file
-            // ManageAccountsPanel accountsPanel = new ManageAccountsPanel(financeService);
-            // showPanel(accountsPanel);
-
-            // For now, a placeholder:
-            JOptionPane.showMessageDialog(this, "Manage Accounts panel not yet implemented.");
+            // This creates and shows your new panel
+            ManageAccountsPanel accountsPanel = new ManageAccountsPanel(financeService);
+            showPanel(accountsPanel);
         });
 
         // FIXED: Added listener
