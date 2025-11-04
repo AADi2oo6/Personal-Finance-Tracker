@@ -117,7 +117,8 @@ public class DashboardPanel extends JPanel {
         });
 
         checkBudgetButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Check Budget panel not yet implemented.");
+            CheckBudgetPanel checkBudget = new CheckBudgetPanel(financeService);
+            showPanel(checkBudget);
         });
 
         monthlyReportButton.addActionListener(e -> {
