@@ -2,8 +2,16 @@ package personalfinancemanager.view.gui;
 
 import java.awt.*;
 import javax.swing.*;
+// **** THIS IS THE FIX ****
+// The package is javax.swing.filechooser, not javax.swing.file
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.File;
+// End of new imports
+
 import personalfinancemanager.auth.Session;
 import personalfinancemanager.service.FinanceService;
+// Import the ExportService
+import personalfinancemanager.service.ExportService;
 
 public class DashboardPanel extends JPanel {
 
@@ -11,9 +19,15 @@ public class DashboardPanel extends JPanel {
     private final FinanceService financeService;
     private final JPanel contentPanel; // Make contentPanel a field
 
+    // We need an ExportService instance
+    private final ExportService exportService;
+
     public DashboardPanel(MainFrame mainFrame, FinanceService financeService) {
         this.mainFrame = mainFrame;
         this.financeService = financeService;
+
+        // Instantiate the ExportService
+        this.exportService = new ExportService(financeService);
 
         setLayout(new BorderLayout());
 
@@ -72,13 +86,10 @@ public class DashboardPanel extends JPanel {
 
         // This one was already working
         viewTransactionsButton.addActionListener(e -> {
-            // You will need to create this TransactionPanel.java file
             TransactionPanel txPanel = new TransactionPanel(financeService);
             showPanel(txPanel);
         });
 
-        // **** THIS IS THE FIX ****
-        // Changed this from a JOptionPane to open your new panel
         addTransactionButton.addActionListener(e -> {
             AddTransactionPanel addTxPanel = new AddTransactionPanel(financeService);
             showPanel(addTxPanel);
@@ -94,24 +105,17 @@ public class DashboardPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Delete Transaction panel not yet implemented.");
         });
 
-        // FIXED: Added listener
         manageAccountsButton.addActionListener(e -> {
-            // This creates and shows your new panel
             ManageAccountsPanel accountsPanel = new ManageAccountsPanel(financeService);
             showPanel(accountsPanel);
         });
 
-        // FIXED: Added listener
         manageCategoriesButton.addActionListener(e -> {
-            // This creates and shows your new panel
             ManageCategoriesPanel catPanel = new ManageCategoriesPanel(financeService);
             showPanel(catPanel);
         });
 
-        // --- Add listeners for all other new buttons ---
-
         setBudgetButton.addActionListener(e -> {
-            // This creates and shows your new panel
             SetBudgetPanel budgetPanel = new SetBudgetPanel(financeService);
             showPanel(budgetPanel);
         });
@@ -122,26 +126,30 @@ public class DashboardPanel extends JPanel {
         });
 
         monthlyReportButton.addActionListener(e -> {
-            MonthlyReportPanel monthlyReport = new MonthlyReportPanel(financeService);
-            showPanel(monthlyReport);
+            MonthlyReportPanel reportPanel = new MonthlyReportPanel(financeService);
+            showPanel(reportPanel);
         });
 
         topSpendingButton.addActionListener(e -> {
-            TopSpendingPanel topSpending = new TopSpendingPanel(financeService);
-            showPanel(topSpending);
+            TopSpendingPanel topSpendingPanel = new TopSpendingPanel(financeService);
+            showPanel(topSpendingPanel);
         });
+
 
         netSavingsButton.addActionListener(e -> {
-            NetSavingsPanel netSaving = new NetSavingsPanel(financeService);
-            showPanel(netSaving);
+            NetSavingsPanel netSavingsPanel = new NetSavingsPanel(financeService);
+            showPanel(netSavingsPanel);
         });
 
+        // **** THIS IS THE NEWLY IMPLEMENTED BUTTON ****
         exportAllButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Export All feature not yet implemented.");
+            exportAllTransactions();
         });
 
         exportSummaryButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Export Summary feature not yet implemented.");
+            // This creates and shows your new panel
+            ExportSummaryPanel summaryPanel = new ExportSummaryPanel(financeService, exportService);
+            showPanel(summaryPanel);
         });
 
         // This one was already working
@@ -161,4 +169,54 @@ public class DashboardPanel extends JPanel {
         contentPanel.revalidate();
         contentPanel.repaint();
     }
+
+    /**
+     * New method to handle the "Export All" logic
+     */
+    private void exportAllTransactions() {
+        // 1. Create a file chooser dialog
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save Transactions As...");
+
+        // 2. Set a default filename
+        String defaultFilename = "transactions_" + Session.getUser().getUsername() + ".csv";
+        fileChooser.setSelectedFile(new File(defaultFilename));
+
+        // 3. Filter for .csv files
+        fileChooser.setFileFilter(new FileNameExtensionFilter("CSV File (*.csv)", "csv"));
+
+        // 4. Show the dialog
+        int userSelection = fileChooser.showSaveDialog(this);
+
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToSave = fileChooser.getSelectedFile();
+
+            // Ensure the file has a .csv extension
+            if (!fileToSave.getAbsolutePath().endsWith(".csv")) {
+                fileToSave = new File(fileToSave.getAbsolutePath() + ".csv");
+            }
+
+            try {
+                // 5. Call our new, upgraded export method
+                int userId = Session.getUser().getUserId();
+                boolean success = exportService.exportAllTransactions(userId, fileToSave);
+
+                if (success) {
+                    JOptionPane.showMessageDialog(this,
+                            "Transactions exported successfully to:\n" + fileToSave.getAbsolutePath(),
+                            "Export Successful", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "No transactions found to export.",
+                            "Export Info", JOptionPane.INFORMATION_MESSAGE);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        "An error occurred while exporting the file:\n" + ex.getMessage(),
+                        "Export Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
 }
+
