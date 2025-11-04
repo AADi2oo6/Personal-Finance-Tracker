@@ -7,7 +7,8 @@ import personalfinancemanager.models.Transaction;
 
 public class TransactionTableModel extends AbstractTableModel {
 
-    private final List<Transaction> transactions;
+    // Make this modifiable
+    private List<Transaction> transactions;
     private final String[] columnNames = {"ID", "Type", "Amount", "Timestamp", "Note"};
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
@@ -60,5 +61,26 @@ public class TransactionTableModel extends AbstractTableModel {
             default:
                 return String.class;
         }
+    }
+
+    // --- NEW METHOD 1 ---
+    /**
+     * Helper method to get the Transaction object from a specific row.
+     * @param modelRow The row index in the model (not the view)
+     * @return The Transaction object.
+     */
+    public Transaction getTransactionAt(int modelRow) {
+        return transactions.get(modelRow);
+    }
+
+    // --- NEW METHOD 2 ---
+    /**
+     * Updates the table with a new list of transactions and refreshes the view.
+     * @param newTransactions The new list of transactions.
+     */
+    public void setTransactions(List<Transaction> newTransactions) {
+        this.transactions = newTransactions;
+        // This tells the JTable to refresh its data
+        fireTableDataChanged();
     }
 }

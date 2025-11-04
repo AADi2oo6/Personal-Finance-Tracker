@@ -2,108 +2,138 @@ package personalfinancemanager.view.gui;
 
 import java.awt.*;
 import javax.swing.*;
-// **** THIS IS THE FIX ****
-// The package is javax.swing.filechooser, not javax.swing.file
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
-// End of new imports
-
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import personalfinancemanager.auth.Session;
-import personalfinancemanager.service.FinanceService;
-// Import the ExportService
 import personalfinancemanager.service.ExportService;
+import personalfinancemanager.service.FinanceService;
 
 public class DashboardPanel extends JPanel {
 
     private final MainFrame mainFrame;
     private final FinanceService financeService;
-    private final JPanel contentPanel; // Make contentPanel a field
-
-    // We need an ExportService instance
     private final ExportService exportService;
+    private final JPanel contentPanel;
 
     public DashboardPanel(MainFrame mainFrame, FinanceService financeService) {
         this.mainFrame = mainFrame;
         this.financeService = financeService;
-
-        // Instantiate the ExportService
         this.exportService = new ExportService(financeService);
 
+        // Use a light background for the whole dashboard
+        setBackground(new Color(245, 245, 245));
         setLayout(new BorderLayout());
 
         // === 1. WELCOME MESSAGE ===
         String username = Session.getUser() != null ? Session.getUser().getUsername() : "User";
         JLabel welcomeLabel = new JLabel("Welcome, " + username, SwingConstants.CENTER);
-        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        welcomeLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        welcomeLabel.setForeground(GuiFactory.COLOR_PRIMARY);
+        welcomeLabel.setBorder(GuiFactory.BORDER_PANEL_TALL);
         add(welcomeLabel, BorderLayout.NORTH);
 
         // === 2. MAIN CONTENT AREA (WHERE OTHER PANELS WILL LOAD) ===
-        contentPanel = new JPanel(new BorderLayout()); // Use BorderLayout
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        contentPanel.setOpaque(false); // Make it transparent
+
+        // Add an initial "getting started" panel
+        JLabel gettingStartedLabel = new JLabel(
+                "<html><center>Select an option from the menu to get started.<br>" +
+                        "You can add transactions, manage accounts, or view reports.</center></html>",
+                SwingConstants.CENTER
+        );
+        gettingStartedLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        gettingStartedLabel.setForeground(Color.GRAY);
+        contentPanel.add(gettingStartedLabel, BorderLayout.CENTER);
+
         add(contentPanel, BorderLayout.CENTER);
 
         // === 3. NAVIGATION PANEL (BUTTONS) ===
-        // Use a 2-column grid to make it look cleaner
-        JPanel navPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+        // We'll use a vertical BoxLayout to stack sections
+        JPanel navPanel = new JPanel();
+        navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.Y_AXIS));
+        navPanel.setBackground(new Color(255, 255, 255));
         navPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // --- Create all buttons based on ConsoleUI ---
-        JButton viewTransactionsButton = new JButton("View Transactions");
-        JButton addTransactionButton = new JButton("Add Transaction");
-        JButton editTransactionButton = new JButton("Edit Transaction");
-        JButton deleteTransactionButton = new JButton("Delete Transaction");
-        JButton manageAccountsButton = new JButton("Manage Accounts");
-        JButton manageCategoriesButton = new JButton("Manage Categories");
-        JButton setBudgetButton = new JButton("Set Monthly Budget");
-        JButton checkBudgetButton = new JButton("Check Budget Status");
-        JButton monthlyReportButton = new JButton("Monthly Category Report");
-        JButton topSpendingButton = new JButton("Top Spending Report");
-        JButton netSavingsButton = new JButton("View Net Savings");
-        JButton exportAllButton = new JButton("Export All Transactions (CSV)");
-        JButton exportSummaryButton = new JButton("Export Monthly Summary");
-        JButton logoutButton = new JButton("Logout");
+        // --- Create styled buttons using our new factory ---
+
+        // Section 1: Transactions
+        // --- FIX: REMOVED navPanel.add(GuiFactory.createSectionHeader("Transactions")); ---
+        JButton addTransactionButton = GuiFactory.createButton("Add Transaction", GuiFactory.COLOR_GREEN);
+        JButton viewTransactionsButton = GuiFactory.createButton("View / Edit / Delete", GuiFactory.COLOR_PRIMARY);
+
+        // Section 2: Management
+        // --- FIX: REMOVED navPanel.add(GuiFactory.createSectionHeader("Manage")); ---
+        JButton manageAccountsButton = GuiFactory.createButton("Manage Accounts", GuiFactory.COLOR_BLUE);
+        JButton manageCategoriesButton = GuiFactory.createButton("Manage Categories", GuiFactory.COLOR_BLUE);
+        JButton setBudgetButton = GuiFactory.createButton("Set Monthly Budget", GuiFactory.COLOR_ORANGE);
+
+        // Section 3: Reports
+        // --- FIX: REMOVED navPanel.add(GuiFactory.createSectionHeader("Reports")); ---
+        JButton checkBudgetButton = GuiFactory.createButton("Check Budget Status", GuiFactory.COLOR_PURPLE);
+        JButton monthlyReportButton = GuiFactory.createButton("Monthly Category Report", GuiFactory.COLOR_PURPLE);
+        JButton topSpendingButton = GuiFactory.createButton("Top Spending Report", GuiFactory.COLOR_PURPLE);
+        JButton netSavingsButton = GuiFactory.createButton("View Net Savings", GuiFactory.COLOR_PURPLE);
+
+        // Section 4: Tools & Logout
+        // --- FIX: REMOVED navPanel.add(GuiFactory.createSectionHeader("Tools")); ---
+        JButton exportAllButton = GuiFactory.createButton("Export All Transactions", GuiFactory.COLOR_GRAY);
+        JButton exportSummaryButton = GuiFactory.createButton("Export Monthly Summary", GuiFactory.COLOR_GRAY);
+        JButton logoutButton = GuiFactory.createButton("Logout", GuiFactory.COLOR_RED);
 
         // --- Add all buttons to the nav panel ---
-        navPanel.add(viewTransactionsButton);
-        navPanel.add(addTransactionButton);
-        navPanel.add(editTransactionButton);
-        navPanel.add(deleteTransactionButton);
-        navPanel.add(manageAccountsButton);
-        navPanel.add(manageCategoriesButton);
-        navPanel.add(setBudgetButton);
-        navPanel.add(checkBudgetButton);
-        navPanel.add(monthlyReportButton);
-        navPanel.add(topSpendingButton);
-        navPanel.add(netSavingsButton);
-        navPanel.add(exportAllButton);
-        navPanel.add(exportSummaryButton);
-        navPanel.add(logoutButton);
+        // Use a standard layout for the buttons
+        JPanel buttonGrid = new JPanel(new GridLayout(0, 1, 5, 5));
+        buttonGrid.setOpaque(false);
 
-        add(navPanel, BorderLayout.WEST);
+        // --- FIX: ADDED "Transactions" header here
+        buttonGrid.add(GuiFactory.createSectionHeader("Transactions"));
+        buttonGrid.add(addTransactionButton);
+        buttonGrid.add(viewTransactionsButton);
 
-        // === 4. ACTION LISTENERS (This is the fix) ===
+        buttonGrid.add(GuiFactory.createSectionHeader("Manage"));
+        buttonGrid.add(manageAccountsButton);
+        buttonGrid.add(manageCategoriesButton);
+        buttonGrid.add(setBudgetButton);
 
-        // This one was already working
+        buttonGrid.add(GuiFactory.createSectionHeader("Reports"));
+        buttonGrid.add(checkBudgetButton);
+        buttonGrid.add(monthlyReportButton);
+        buttonGrid.add(topSpendingButton);
+        buttonGrid.add(netSavingsButton);
+
+        buttonGrid.add(GuiFactory.createSectionHeader("Tools"));
+        buttonGrid.add(exportAllButton);
+        buttonGrid.add(exportSummaryButton);
+
+        buttonGrid.add(Box.createVerticalStrut(20)); // Add some space
+        buttonGrid.add(logoutButton);
+
+        navPanel.add(buttonGrid);
+
+        // Set fixed size for the nav panel
+        navPanel.setPreferredSize(new Dimension(250, 0));
+
+        add(new JScrollPane(navPanel), BorderLayout.WEST);
+
+        // === 4. ACTION LISTENERS (All buttons are here) ===
+
         viewTransactionsButton.addActionListener(e -> {
             TransactionPanel txPanel = new TransactionPanel(financeService);
             showPanel(txPanel);
         });
 
         addTransactionButton.addActionListener(e -> {
-            AddTransactionPanel addTxPanel = new AddTransactionPanel(financeService);
+            // Updated to use the file from the context
+            personalfinancemanager.view.gui.AddTransactionPanel addTxPanel = new personalfinancemanager.view.gui.AddTransactionPanel(financeService);
             showPanel(addTxPanel);
         });
 
-        // ADDED: Listener for Edit Transaction
-        editTransactionButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Edit Transaction panel not yet implemented.");
-        });
-
-        // ADDED: Listener for Delete Transaction
-        deleteTransactionButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Delete Transaction panel not yet implemented.");
-        });
+        // "Edit" and "Delete" buttons are now removed.
 
         manageAccountsButton.addActionListener(e -> {
             ManageAccountsPanel accountsPanel = new ManageAccountsPanel(financeService);
@@ -141,18 +171,15 @@ public class DashboardPanel extends JPanel {
             showPanel(netSavingsPanel);
         });
 
-        // **** THIS IS THE NEWLY IMPLEMENTED BUTTON ****
         exportAllButton.addActionListener(e -> {
             exportAllTransactions();
         });
 
         exportSummaryButton.addActionListener(e -> {
-            // This creates and shows your new panel
             ExportSummaryPanel summaryPanel = new ExportSummaryPanel(financeService, exportService);
             showPanel(summaryPanel);
         });
 
-        // This one was already working
         logoutButton.addActionListener(e -> {
             Session.logout();
             mainFrame.switchToPanel("LOGIN");
@@ -171,49 +198,44 @@ public class DashboardPanel extends JPanel {
     }
 
     /**
-     * New method to handle the "Export All" logic
+     * Handles the "Export All" action
      */
     private void exportAllTransactions() {
-        // 1. Create a file chooser dialog
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Save Transactions As...");
+        fileChooser.setDialogTitle("Save All Transactions As...");
 
-        // 2. Set a default filename
-        String defaultFilename = "transactions_" + Session.getUser().getUsername() + ".csv";
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String defaultFilename = String.format("transactions_%s_%s.csv",
+                Session.getUser().getUsername(), timestamp);
         fileChooser.setSelectedFile(new File(defaultFilename));
 
-        // 3. Filter for .csv files
         fileChooser.setFileFilter(new FileNameExtensionFilter("CSV File (*.csv)", "csv"));
 
-        // 4. Show the dialog
         int userSelection = fileChooser.showSaveDialog(this);
 
         if (userSelection == JFileChooser.APPROVE_OPTION) {
             File fileToSave = fileChooser.getSelectedFile();
 
-            // Ensure the file has a .csv extension
             if (!fileToSave.getAbsolutePath().endsWith(".csv")) {
                 fileToSave = new File(fileToSave.getAbsolutePath() + ".csv");
             }
 
             try {
-                // 5. Call our new, upgraded export method
                 int userId = Session.getUser().getUserId();
                 boolean success = exportService.exportAllTransactions(userId, fileToSave);
-
                 if (success) {
                     JOptionPane.showMessageDialog(this,
                             "Transactions exported successfully to:\n" + fileToSave.getAbsolutePath(),
                             "Export Successful", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(this,
-                            "No transactions found to export.",
+                            "You have no transactions to export.",
                             "Export Info", JOptionPane.INFORMATION_MESSAGE);
                 }
-            } catch (Exception ex) {
+            } catch (IOException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
-                        "An error occurred while exporting the file:\n" + ex.getMessage(),
+                        "An error occurred while saving the file:\n" + ex.getMessage(),
                         "Export Error", JOptionPane.ERROR_MESSAGE);
             }
         }

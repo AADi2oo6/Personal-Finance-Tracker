@@ -5,7 +5,7 @@ REM Create a bin directory if it doesn't exist
 if not exist "bin" mkdir bin
 
 REM Compile all .java files into the bin directory
-REM Generate a list of all .java source files
+REM Generate a list of all .java source ADITYfiles
 dir /s /b src\*.java > sources.txt
 
 REM Compile all .java files from the list into the bin directory

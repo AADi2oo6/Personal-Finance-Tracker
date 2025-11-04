@@ -171,8 +171,8 @@ public class ManageAccountsPanel extends JPanel {
             if (value instanceof Account account) {
                 // Use HTML to format the text in two parts
                 String text = String.format(
-                        "<html><body style='width: 200px;'><b>%s</b>" +
-                                "<span style='float: right; color: gray;'>₹%.2f</span>" +
+                        "<html><body style='width: 200px;'><b> %s     -></b>" +
+                                "<span style='float: right; color: gray;'>     ₹%.2f</span>" +
                                 "</body></html>",
                         account.getName(),
                         account.getBalance()
