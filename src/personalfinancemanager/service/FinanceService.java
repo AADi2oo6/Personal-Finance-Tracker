@@ -77,8 +77,7 @@ public class FinanceService {
         return income - expense;
     }
     public double getNetSavingsByMonth(int userId, int year, int month) {
-        // This method (findByMonth) is already used by your getMonthlyCategoryBreakdown,
-        // so we know it exists and works.
+
         List<Transaction> txList = transactionDAO.findByMonth(userId, year, month);
 
         double income = 0.0;

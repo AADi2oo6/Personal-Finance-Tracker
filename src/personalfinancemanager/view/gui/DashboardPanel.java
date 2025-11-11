@@ -10,6 +10,8 @@ import java.time.format.DateTimeFormatter;
 import personalfinancemanager.auth.Session;
 import personalfinancemanager.service.ExportService;
 import personalfinancemanager.service.FinanceService;
+import java.awt.Cursor;
+import javax.swing.SwingWorker;
 
 public class DashboardPanel extends JPanel {
 
@@ -53,44 +55,32 @@ public class DashboardPanel extends JPanel {
         add(contentPanel, BorderLayout.CENTER);
 
         // === 3. NAVIGATION PANEL (BUTTONS) ===
-        // We'll use a vertical BoxLayout to stack sections
         JPanel navPanel = new JPanel();
         navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.Y_AXIS));
         navPanel.setBackground(new Color(255, 255, 255));
         navPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // --- Create styled buttons using our new factory ---
-
-        // Section 1: Transactions
-        // --- FIX: REMOVED navPanel.add(GuiFactory.createSectionHeader("Transactions")); ---
         JButton addTransactionButton = GuiFactory.createButton("Add Transaction", GuiFactory.COLOR_GREEN);
         JButton viewTransactionsButton = GuiFactory.createButton("View / Edit / Delete", GuiFactory.COLOR_PRIMARY);
 
-        // Section 2: Management
-        // --- FIX: REMOVED navPanel.add(GuiFactory.createSectionHeader("Manage")); ---
         JButton manageAccountsButton = GuiFactory.createButton("Manage Accounts", GuiFactory.COLOR_BLUE);
         JButton manageCategoriesButton = GuiFactory.createButton("Manage Categories", GuiFactory.COLOR_BLUE);
         JButton setBudgetButton = GuiFactory.createButton("Set Monthly Budget", GuiFactory.COLOR_ORANGE);
 
-        // Section 3: Reports
-        // --- FIX: REMOVED navPanel.add(GuiFactory.createSectionHeader("Reports")); ---
         JButton checkBudgetButton = GuiFactory.createButton("Check Budget Status", GuiFactory.COLOR_PURPLE);
         JButton monthlyReportButton = GuiFactory.createButton("Monthly Category Report", GuiFactory.COLOR_PURPLE);
         JButton topSpendingButton = GuiFactory.createButton("Top Spending Report", GuiFactory.COLOR_PURPLE);
         JButton netSavingsButton = GuiFactory.createButton("View Net Savings", GuiFactory.COLOR_PURPLE);
 
-        // Section 4: Tools & Logout
-        // --- FIX: REMOVED navPanel.add(GuiFactory.createSectionHeader("Tools")); ---
         JButton exportAllButton = GuiFactory.createButton("Export All Transactions", GuiFactory.COLOR_GRAY);
         JButton exportSummaryButton = GuiFactory.createButton("Export Monthly Summary", GuiFactory.COLOR_GRAY);
         JButton logoutButton = GuiFactory.createButton("Logout", GuiFactory.COLOR_RED);
 
         // --- Add all buttons to the nav panel ---
-        // Use a standard layout for the buttons
         JPanel buttonGrid = new JPanel(new GridLayout(0, 1, 5, 5));
         buttonGrid.setOpaque(false);
 
-        // --- FIX: ADDED "Transactions" header here
         buttonGrid.add(GuiFactory.createSectionHeader("Transactions"));
         buttonGrid.add(addTransactionButton);
         buttonGrid.add(viewTransactionsButton);
@@ -115,7 +105,6 @@ public class DashboardPanel extends JPanel {
 
         navPanel.add(buttonGrid);
 
-        // Set fixed size for the nav panel
         navPanel.setPreferredSize(new Dimension(250, 0));
 
         add(new JScrollPane(navPanel), BorderLayout.WEST);
@@ -128,12 +117,9 @@ public class DashboardPanel extends JPanel {
         });
 
         addTransactionButton.addActionListener(e -> {
-            // Updated to use the file from the context
-            personalfinancemanager.view.gui.AddTransactionPanel addTxPanel = new personalfinancemanager.view.gui.AddTransactionPanel(financeService);
+            AddTransactionPanel addTxPanel = new AddTransactionPanel(financeService);
             showPanel(addTxPanel);
         });
-
-        // "Edit" and "Delete" buttons are now removed.
 
         manageAccountsButton.addActionListener(e -> {
             ManageAccountsPanel accountsPanel = new ManageAccountsPanel(financeService);
@@ -165,14 +151,14 @@ public class DashboardPanel extends JPanel {
             showPanel(topSpendingPanel);
         });
 
-
         netSavingsButton.addActionListener(e -> {
             NetSavingsPanel netSavingsPanel = new NetSavingsPanel(financeService);
             showPanel(netSavingsPanel);
         });
 
         exportAllButton.addActionListener(e -> {
-            exportAllTransactions();
+            // This now calls the multithreaded version
+            exportAllTransactionsWithWorker();
         });
 
         exportSummaryButton.addActionListener(e -> {
@@ -186,10 +172,6 @@ public class DashboardPanel extends JPanel {
         });
     }
 
-    /**
-     * Helper method to clear the content panel and show a new one.
-     * @param panel The panel to display.
-     */
     private void showPanel(JPanel panel) {
         contentPanel.removeAll();
         contentPanel.add(panel, BorderLayout.CENTER);
@@ -198,9 +180,9 @@ public class DashboardPanel extends JPanel {
     }
 
     /**
-     * Handles the "Export All" action
+     * Using a SwingWorker to prevent the GUI from freezing.
      */
-    private void exportAllTransactions() {
+    private void exportAllTransactionsWithWorker() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Save All Transactions As...");
 
@@ -214,31 +196,71 @@ public class DashboardPanel extends JPanel {
         int userSelection = fileChooser.showSaveDialog(this);
 
         if (userSelection == JFileChooser.APPROVE_OPTION) {
-            File fileToSave = fileChooser.getSelectedFile();
 
-            if (!fileToSave.getAbsolutePath().endsWith(".csv")) {
-                fileToSave = new File(fileToSave.getAbsolutePath() + ".csv");
+            File selectedFile = fileChooser.getSelectedFile();
+
+            if (!selectedFile.getAbsolutePath().endsWith(".csv")) {
+                selectedFile = new File(selectedFile.getAbsolutePath() + ".csv");
             }
 
-            try {
-                int userId = Session.getUser().getUserId();
-                boolean success = exportService.exportAllTransactions(userId, fileToSave);
-                if (success) {
-                    JOptionPane.showMessageDialog(this,
-                            "Transactions exported successfully to:\n" + fileToSave.getAbsolutePath(),
-                            "Export Successful", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(this,
-                            "You have no transactions to export.",
-                            "Export Info", JOptionPane.INFORMATION_MESSAGE);
+
+            final File fileToSave = selectedFile;
+
+
+            // 1. Show a "loading" cursor so the user knows work is happening
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+            // 2. Create a new SwingWorker.
+            SwingWorker<Boolean, Void> worker = new SwingWorker<>() {
+
+                private String errorMessage = null; // To store any error
+
+                @Override
+                protected Boolean doInBackground() throws Exception {
+                    // 3.NEW WORKER THREAD.
+                    try {
+                        int userId = Session.getUser().getUserId();
+                        return exportService.exportAllTransactions(userId, fileToSave);
+                    } catch (IOException ex) {
+                        errorMessage = ex.getMessage(); // Save error
+                        return false; // Indicate failure
+                    }
                 }
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this,
-                        "An error occurred while saving the file:\n" + ex.getMessage(),
-                        "Export Error", JOptionPane.ERROR_MESSAGE);
-            }
+
+                @Override
+                protected void done() {
+                    // 4. This code runs back on the MAIN GUI THREAD (EDT).
+                    setCursor(Cursor.getDefaultCursor());
+
+                    try {
+                        boolean success = get();
+
+                        if (success) {
+                            JOptionPane.showMessageDialog(DashboardPanel.this,
+                                    // This also uses the 'final' variable, which is fine
+                                    "Transactions exported successfully to:\n" + fileToSave.getAbsolutePath(),
+                                    "Export Successful", JOptionPane.INFORMATION_MESSAGE);
+                        } else if (errorMessage != null) {
+                            // If we caught an error, show it
+                            throw new Exception(errorMessage);
+                        } else {
+                            // If no error, but success=false, it means no data
+                            JOptionPane.showMessageDialog(DashboardPanel.this,
+                                    "You have no transactions to export.",
+                                    "Export Info", JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    } catch (Exception ex) {
+                        // Handle any exception that happened
+                        ex.printStackTrace();
+                        JOptionPane.showMessageDialog(DashboardPanel.this,
+                                "An error occurred while saving the file:\n" + ex.getMessage(),
+                                "Export Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            };
+
+            // 6. Start the worker thread!
+            worker.execute();
         }
     }
 }
-
