@@ -16,56 +16,111 @@ public class LoginPanel extends JPanel {
         this.mainFrame = mainFrame;
         this.authManager = authManager;
 
+        setBackground(GuiFactory.COLOR_LIGHT);
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
 
-        JLabel titleLabel = new JLabel("Login");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        // Create a centered card panel
+        JPanel cardPanel = GuiFactory.createCardPanel();
+        cardPanel.setLayout(new BoxLayout(cardPanel, BoxLayout.Y_AXIS));
+        cardPanel.setPreferredSize(new Dimension(400, 350));
+        cardPanel.setBackground(Color.WHITE);
 
-        JTextField usernameField = new JTextField(20);
-        JPasswordField passwordField = new JPasswordField(20);
-        JButton loginButton = new JButton("Login");
+        // Title
+        JLabel titleLabel = GuiFactory.createTitleLabel("Personal Finance Tracker");
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        cardPanel.add(titleLabel);
+
+        // Subtitle
+        JLabel subtitleLabel = new JLabel("Login to your account");
+        subtitleLabel.setFont(GuiFactory.FONT_SUBHEADING);
+        subtitleLabel.setForeground(GuiFactory.COLOR_GRAY);
+        subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        cardPanel.add(Box.createVerticalStrut(5));
+        cardPanel.add(subtitleLabel);
+        cardPanel.add(Box.createVerticalStrut(20));
+
+        // Username field
+        JLabel usernameLabel = GuiFactory.createLabel("Username:");
+        usernameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JTextField usernameField = GuiFactory.createTextField(25);
+        usernameField.setMaximumSize(new Dimension(350, 35));
+        usernameField.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        cardPanel.add(usernameLabel);
+        cardPanel.add(Box.createVerticalStrut(5));
+        cardPanel.add(usernameField);
+        cardPanel.add(Box.createVerticalStrut(15));
+
+        // Password field
+        JLabel passwordLabel = GuiFactory.createLabel("Password:");
+        passwordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JPasswordField passwordField = GuiFactory.createPasswordField(25);
+        passwordField.setMaximumSize(new Dimension(350, 35));
+        passwordField.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        cardPanel.add(passwordLabel);
+        cardPanel.add(Box.createVerticalStrut(5));
+        cardPanel.add(passwordField);
+        cardPanel.add(Box.createVerticalStrut(20));
+
+        // Login button
+        JButton loginButton = GuiFactory.createButton("Login", GuiFactory.COLOR_PRIMARY);
+        loginButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        cardPanel.add(loginButton);
+
+        // Register link
+        cardPanel.add(Box.createVerticalStrut(15));
         JButton registerButton = new JButton("Don't have an account? Register");
+        registerButton.setFont(GuiFactory.FONT_LABEL);
+        registerButton.setForeground(GuiFactory.COLOR_PRIMARY);
+        registerButton.setContentAreaFilled(false);
+        registerButton.setBorderPainted(false);
+        registerButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        cardPanel.add(registerButton);
 
-        // Layout components
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        add(titleLabel, gbc);
+        // Add padding around the card
+        JPanel paddingPanel = new JPanel(new GridBagLayout());
+        paddingPanel.setBackground(GuiFactory.COLOR_LIGHT);
+        GridBagConstraints gbcPadding = new GridBagConstraints();
+        gbcPadding.gridx = 0;
+        gbcPadding.gridy = 0;
+        gbcPadding.insets = new Insets(50, 20, 50, 20);
+        paddingPanel.add(cardPanel, gbcPadding);
 
-        gbc.gridwidth = 1; gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridy = 1; add(new JLabel("Username:"), gbc);
-        gbc.gridy = 2; add(new JLabel("Password:"), gbc);
-
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridx = 1;
-        gbc.gridy = 1; add(usernameField, gbc);
-        gbc.gridy = 2; add(passwordField, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
-        add(loginButton, gbc);
-
-        gbc.gridy = 4;
-        add(registerButton, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        add(paddingPanel, gbc);
 
         // Action Listeners
         loginButton.addActionListener(e -> {
             String username = usernameField.getText();
             String password = new String(passwordField.getPassword());
+            
+            if (username.isEmpty() || password.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter both username and password.", 
+                    "Missing Information", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
             try {
                 User user = authManager.login(username, password);
 
                 if (user != null) {
                     Session.setUser(user);
-                    // Create and switch to dashboard using public methods from MainFrame
-                    // Create and switch to dashboard using public methods
                     DashboardPanel dashboard = new DashboardPanel(mainFrame, mainFrame.getFinanceService());
                     mainFrame.addPanel(dashboard, "DASHBOARD");
                     mainFrame.switchToPanel("DASHBOARD");
                 } else {
-                    JOptionPane.showMessageDialog(this, "Invalid username or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Invalid username or password.", 
+                        "Login Failed", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (SQLException dbError) {
-                 JOptionPane.showMessageDialog(this, "Could not connect to the database. Please check your connection and configuration.", "Database Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, 
+                    "Could not connect to the database. Please check your connection and configuration.", 
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 

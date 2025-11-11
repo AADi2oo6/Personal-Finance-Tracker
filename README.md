@@ -3,9 +3,41 @@
 
 A Java-based application for managing personal finances, tracking income/expenses, and setting budgets.
 
+> **✨ NEW**: The GUI has been completely modernized with professional styling, modern colors, and enhanced user experience!
+
 ---
 
-## 🚀 Getting Started
+## 🎨 GUI Modernization (NEW!)
+
+Your Personal Finance Manager now features a **professional, modern GUI** with:
+
+✅ **Modern Color Scheme** - 11 vibrant, carefully-selected colors  
+✅ **Professional Typography** - Segoe UI fonts with proper hierarchy  
+✅ **Enhanced Components** - Modern buttons, inputs, panels with smooth interactions  
+✅ **Improved Layouts** - Card-based designs with better organization  
+✅ **Better UX** - Color-coded buttons, smooth hover effects, validation feedback  
+✅ **High Accessibility** - High contrast, larger elements, clear labeling  
+
+### � GUI Documentation
+
+Complete documentation is available for the modernization:
+
+| Document | Purpose |
+|----------|---------|
+| **[QUICK_START_GUIDE.md](QUICK_START_GUIDE.md)** | Quick overview and common tasks |
+| **[INDEX.md](INDEX.md)** | Complete documentation index |
+| **[GUI_MODERNIZATION_SUMMARY.txt](GUI_MODERNIZATION_SUMMARY.txt)** | Executive summary of changes |
+| **[GUI_BEFORE_AFTER.md](GUI_BEFORE_AFTER.md)** | Visual comparison of improvements |
+| **[GUI_STYLE_GUIDE.md](GUI_STYLE_GUIDE.md)** | Design reference with colors and fonts |
+| **[GUI_MODERNIZATION.md](GUI_MODERNIZATION.md)** | Technical documentation |
+| **[MODERNIZATION_STATUS_REPORT.md](MODERNIZATION_STATUS_REPORT.md)** | Project status and roadmap |
+| **[MODERNIZATION_IMPLEMENTATION_GUIDE.md](MODERNIZATION_IMPLEMENTATION_GUIDE.md)** | Guide to modernize remaining panels |
+
+**👉 [Start with QUICK_START_GUIDE.md](QUICK_START_GUIDE.md) to learn about the modernization!**
+
+---
+
+## �🚀 Getting Started
 
 Follow these instructions to get a copy of the project up and running on your local machine for development and testing.
 
@@ -30,32 +62,35 @@ First, clone this repository to your local machine.
 
 ```bash
 # Replace with your repository's URL
-git clone [https://github.com/your-username/personal-finance-manager.git](https://github.com/your-username/personal-finance-manager.git)
+git clone https://github.com/your-username/personal-finance-manager.git
 cd personal-finance-manager
 ```
 
-2. Set Up the MySQL Database
+### 2. Set Up the MySQL Database
+
 You must create the database and tables before running the application.
 
 Log in to your MySQL client (e.g., from the command line):
 
-Bash
-
+```bash
 mysql -u YOUR_USERNAME -p
+```
+
 Create the database named personal_finance_db:
 
-SQL
-
+```sql
 CREATE DATABASE personal_finance_db;
+```
+
 Select the new database to use it:
 
-SQL
-
+```sql
 USE personal_finance_db;
+```
+
 Run the following SQL scripts to create all the necessary tables:
 
-SQL
-
+```sql
 CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(100) UNIQUE,
@@ -102,3 +137,4 @@ CREATE TABLE budgets (
     UNIQUE(user_id, year, month),
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
+```

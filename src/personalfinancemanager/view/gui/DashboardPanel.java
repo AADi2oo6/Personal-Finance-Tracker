@@ -1,17 +1,16 @@
 package personalfinancemanager.view.gui;
 
 import java.awt.*;
-import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import personalfinancemanager.auth.Session;
 import personalfinancemanager.service.ExportService;
 import personalfinancemanager.service.FinanceService;
-import java.awt.Cursor;
-import javax.swing.SwingWorker;
 
 public class DashboardPanel extends JPanel {
 
@@ -25,91 +24,122 @@ public class DashboardPanel extends JPanel {
         this.financeService = financeService;
         this.exportService = new ExportService(financeService);
 
-        // Use a light background for the whole dashboard
-        setBackground(new Color(245, 245, 245));
+        // Modern background
+        setBackground(GuiFactory.COLOR_LIGHT);
         setLayout(new BorderLayout());
 
-        // === 1. WELCOME MESSAGE ===
+        // === 1. WELCOME HEADER ===
         String username = Session.getUser() != null ? Session.getUser().getUsername() : "User";
-        JLabel welcomeLabel = new JLabel("Welcome, " + username, SwingConstants.CENTER);
-        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        welcomeLabel.setForeground(GuiFactory.COLOR_PRIMARY);
-        welcomeLabel.setBorder(GuiFactory.BORDER_PANEL_TALL);
-        add(welcomeLabel, BorderLayout.NORTH);
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(new BorderLayout());
+        headerPanel.setBackground(GuiFactory.COLOR_PRIMARY_DARK);
+        headerPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        // === 2. MAIN CONTENT AREA (WHERE OTHER PANELS WILL LOAD) ===
+        JLabel welcomeLabel = new JLabel("Welcome, " + username + " 👋");
+        welcomeLabel.setFont(GuiFactory.FONT_TITLE);
+        welcomeLabel.setForeground(Color.WHITE);
+
+        JLabel dateLabel = new JLabel(java.time.LocalDate.now().toString());
+        dateLabel.setFont(GuiFactory.FONT_TEXT);
+        dateLabel.setForeground(GuiFactory.COLOR_LIGHT);
+
+        JPanel headerTextPanel = new JPanel();
+        headerTextPanel.setLayout(new BoxLayout(headerTextPanel, BoxLayout.Y_AXIS));
+        headerTextPanel.setBackground(GuiFactory.COLOR_PRIMARY_DARK);
+        headerTextPanel.add(welcomeLabel);
+        headerTextPanel.add(Box.createVerticalStrut(5));
+        headerTextPanel.add(dateLabel);
+
+        headerPanel.add(headerTextPanel, BorderLayout.WEST);
+
+        // Add logout button to header
+        JButton logoutButton = GuiFactory.createButton("Logout", GuiFactory.COLOR_DANGER);
+        logoutButton.setPreferredSize(new Dimension(100, 35));
+        headerPanel.add(logoutButton, BorderLayout.EAST);
+
+        add(headerPanel, BorderLayout.NORTH);
+
+        // === 2. MAIN CONTENT AREA ===
         contentPanel = new JPanel(new BorderLayout());
-        contentPanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-        contentPanel.setOpaque(false); // Make it transparent
+        contentPanel.setBackground(Color.WHITE);
+        contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         // Add an initial "getting started" panel
+        JPanel gettingStartedPanel = new JPanel(new GridBagLayout());
+        gettingStartedPanel.setBackground(Color.WHITE);
         JLabel gettingStartedLabel = new JLabel(
-                "<html><center>Select an option from the menu to get started.<br>" +
-                        "You can add transactions, manage accounts, or view reports.</center></html>",
-                SwingConstants.CENTER
+                "<html><center><h2>Welcome to Personal Finance Tracker</h2>" +
+                        "<br>Select an option from the menu to get started.<br>" +
+                        "<br>You can add transactions, manage accounts, view reports and much more!</center></html>"
         );
-        gettingStartedLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        gettingStartedLabel.setForeground(Color.GRAY);
-        contentPanel.add(gettingStartedLabel, BorderLayout.CENTER);
+        gettingStartedLabel.setFont(GuiFactory.FONT_LABEL);
+        gettingStartedLabel.setForeground(GuiFactory.COLOR_GRAY);
+        gettingStartedPanel.add(gettingStartedLabel);
+        contentPanel.add(gettingStartedPanel, BorderLayout.CENTER);
 
         add(contentPanel, BorderLayout.CENTER);
 
-        // === 3. NAVIGATION PANEL (BUTTONS) ===
+        // === 3. MODERN SIDEBAR NAVIGATION ===
         JPanel navPanel = new JPanel();
         navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.Y_AXIS));
-        navPanel.setBackground(new Color(255, 255, 255));
-        navPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        navPanel.setBackground(GuiFactory.COLOR_DARK);
+        navPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        // --- Create styled buttons using our new factory ---
-        JButton addTransactionButton = GuiFactory.createButton("Add Transaction", GuiFactory.COLOR_GREEN);
-        JButton viewTransactionsButton = GuiFactory.createButton("View / Edit / Delete", GuiFactory.COLOR_PRIMARY);
+        // Create organized button groups
+        JPanel transactionSection = createSectionPanel("Transactions", GuiFactory.COLOR_SUCCESS);
+        JButton addTransactionButton = GuiFactory.createButton("+ Add Transaction", GuiFactory.COLOR_SUCCESS);
+        JButton viewTransactionsButton = GuiFactory.createButton("View / Edit / Delete", GuiFactory.COLOR_ACCENT);
+        transactionSection.add(addTransactionButton);
+        transactionSection.add(Box.createVerticalStrut(8));
+        transactionSection.add(viewTransactionsButton);
 
+        JPanel manageSection = createSectionPanel("Manage", GuiFactory.COLOR_BLUE);
         JButton manageAccountsButton = GuiFactory.createButton("Manage Accounts", GuiFactory.COLOR_BLUE);
-        JButton manageCategoriesButton = GuiFactory.createButton("Manage Categories", GuiFactory.COLOR_BLUE);
+        JButton manageCategoriesButton = GuiFactory.createButton("Manage Categories", GuiFactory.COLOR_ACCENT);
         JButton setBudgetButton = GuiFactory.createButton("Set Monthly Budget", GuiFactory.COLOR_ORANGE);
+        manageSection.add(manageAccountsButton);
+        manageSection.add(Box.createVerticalStrut(8));
+        manageSection.add(manageCategoriesButton);
+        manageSection.add(Box.createVerticalStrut(8));
+        manageSection.add(setBudgetButton);
 
+        JPanel reportsSection = createSectionPanel("Reports", GuiFactory.COLOR_PURPLE);
         JButton checkBudgetButton = GuiFactory.createButton("Check Budget Status", GuiFactory.COLOR_PURPLE);
-        JButton monthlyReportButton = GuiFactory.createButton("Monthly Category Report", GuiFactory.COLOR_PURPLE);
-        JButton topSpendingButton = GuiFactory.createButton("Top Spending Report", GuiFactory.COLOR_PURPLE);
-        JButton netSavingsButton = GuiFactory.createButton("View Net Savings", GuiFactory.COLOR_PURPLE);
+        JButton monthlyReportButton = GuiFactory.createButton("Monthly Category Report", GuiFactory.COLOR_ACCENT);
+        JButton topSpendingButton = GuiFactory.createButton("Top Spending Report", GuiFactory.COLOR_ACCENT);
+        JButton netSavingsButton = GuiFactory.createButton("View Net Savings", GuiFactory.COLOR_ACCENT);
+        reportsSection.add(checkBudgetButton);
+        reportsSection.add(Box.createVerticalStrut(8));
+        reportsSection.add(monthlyReportButton);
+        reportsSection.add(Box.createVerticalStrut(8));
+        reportsSection.add(topSpendingButton);
+        reportsSection.add(Box.createVerticalStrut(8));
+        reportsSection.add(netSavingsButton);
 
+        JPanel toolsSection = createSectionPanel("Tools", GuiFactory.COLOR_GRAY);
         JButton exportAllButton = GuiFactory.createButton("Export All Transactions", GuiFactory.COLOR_GRAY);
-        JButton exportSummaryButton = GuiFactory.createButton("Export Monthly Summary", GuiFactory.COLOR_GRAY);
-        JButton logoutButton = GuiFactory.createButton("Logout", GuiFactory.COLOR_RED);
+        JButton exportSummaryButton = GuiFactory.createButton("Export Monthly Summary", GuiFactory.COLOR_ACCENT);
+        toolsSection.add(exportAllButton);
+        toolsSection.add(Box.createVerticalStrut(8));
+        toolsSection.add(exportSummaryButton);
 
-        // --- Add all buttons to the nav panel ---
-        JPanel buttonGrid = new JPanel(new GridLayout(0, 1, 5, 5));
-        buttonGrid.setOpaque(false);
+        // Add all sections to nav panel
+        navPanel.add(transactionSection);
+        navPanel.add(Box.createVerticalStrut(15));
+        navPanel.add(manageSection);
+        navPanel.add(Box.createVerticalStrut(15));
+        navPanel.add(reportsSection);
+        navPanel.add(Box.createVerticalStrut(15));
+        navPanel.add(toolsSection);
+        navPanel.add(Box.createVerticalGlue());
 
-        buttonGrid.add(GuiFactory.createSectionHeader("Transactions"));
-        buttonGrid.add(addTransactionButton);
-        buttonGrid.add(viewTransactionsButton);
+        JScrollPane navScrollPane = new JScrollPane(navPanel);
+        navScrollPane.setPreferredSize(new Dimension(280, 0));
+        navScrollPane.setBorder(null);
+        navScrollPane.getViewport().setBackground(GuiFactory.COLOR_DARK);
+        add(navScrollPane, BorderLayout.WEST);
 
-        buttonGrid.add(GuiFactory.createSectionHeader("Manage"));
-        buttonGrid.add(manageAccountsButton);
-        buttonGrid.add(manageCategoriesButton);
-        buttonGrid.add(setBudgetButton);
-
-        buttonGrid.add(GuiFactory.createSectionHeader("Reports"));
-        buttonGrid.add(checkBudgetButton);
-        buttonGrid.add(monthlyReportButton);
-        buttonGrid.add(topSpendingButton);
-        buttonGrid.add(netSavingsButton);
-
-        buttonGrid.add(GuiFactory.createSectionHeader("Tools"));
-        buttonGrid.add(exportAllButton);
-        buttonGrid.add(exportSummaryButton);
-
-        buttonGrid.add(Box.createVerticalStrut(20)); // Add some space
-        buttonGrid.add(logoutButton);
-
-        navPanel.add(buttonGrid);
-
-        navPanel.setPreferredSize(new Dimension(250, 0));
-
-        add(new JScrollPane(navPanel), BorderLayout.WEST);
-
-        // === 4. ACTION LISTENERS (All buttons are here) ===
+        // === 4. ACTION LISTENERS ===
 
         viewTransactionsButton.addActionListener(e -> {
             TransactionPanel txPanel = new TransactionPanel(financeService);
@@ -157,7 +187,6 @@ public class DashboardPanel extends JPanel {
         });
 
         exportAllButton.addActionListener(e -> {
-            // This now calls the multithreaded version
             exportAllTransactionsWithWorker();
         });
 
@@ -170,6 +199,25 @@ public class DashboardPanel extends JPanel {
             Session.logout();
             mainFrame.switchToPanel("LOGIN");
         });
+    }
+
+    /**
+     * Create a styled section panel for organizing buttons
+     */
+    private JPanel createSectionPanel(String title, Color color) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(GuiFactory.COLOR_DARK);
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel sectionLabel = new JLabel("■ " + title);
+        sectionLabel.setFont(GuiFactory.FONT_SUBHEADING);
+        sectionLabel.setForeground(color);
+        sectionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(sectionLabel);
+        panel.add(Box.createVerticalStrut(10));
+
+        return panel;
     }
 
     private void showPanel(JPanel panel) {
@@ -251,7 +299,6 @@ public class DashboardPanel extends JPanel {
                         }
                     } catch (Exception ex) {
                         // Handle any exception that happened
-                        ex.printStackTrace();
                         JOptionPane.showMessageDialog(DashboardPanel.this,
                                 "An error occurred while saving the file:\n" + ex.getMessage(),
                                 "Export Error", JOptionPane.ERROR_MESSAGE);
